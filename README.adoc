@@ -207,6 +207,19 @@ Our microservice will be consumed from other domains, therefore we need to enabl
 
 image::images/cors.png[]
 
+[source, bash]
+----
+rest-new-cross-origin-resource-sharing-filter
+----
+
+
+==== Run Swarm app
+You have two options from a terminal :
+
+* `mvn clean wildfly-swarm:run`
+* Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/bookservice-swarm.jar`
+
+Ok, now backend is running now as a microservice, let's extract the Frontend into a standalone microservice as well.
 
 === Frontend Swarm application
 
@@ -243,3 +256,10 @@ Our Frontend must now call a remote REST service, open first :
 find we specify the URL and replace it with `http://localhost:8080/rest/authors/:AuthorId`.
 
 Do the same for `BookFactory.js`, we will change `SellingPointFactory.js` later.
+
+==== Deploy the app
+
+* `mvn clean wildfly-swarm:run`
+* Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/bookstore-swarm.jar`
+
+You can browse to `http://locahost:8081` to make sure everything is running.
