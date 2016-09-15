@@ -1,0 +1,145 @@
+= JavaOne - Hands On Lab
+
+toc::[]
+
+== Starting Eclipse
+
+`/home/eclipse/jee-neon/eclipse`
+
+It should propose your the correct workspace :
+
+`/home/osboxes/workspace`
+
+
+== Starting the Forge Wizard
+
+Press "Ctrl + 4" :
+
+image::images/forge1.png[]
+
+TIP: You can also use at any time the Forge Console.
+
+== Creating the BookService
+
+image::images/forge2.png[]
+
+[NOTE]
+For each command you will also see the console equivalent, choose whatever you want (UI or console)
+[source, bash]
+----
+project-new --named bookservice --stack JAVA_EE_7
+----
+
+Look at the structure of the created project, you will see it's a classic Maven Java project
+
+CAUTION: From now, in the screenshots don't take into account the package name since it's different from yours. Stick to `org.bookservice.`
+
+=== Creating the model
+
+Let's start to define our domain objects : our bookService will have an `author` and a `book`.
+
+==== Creating the Author entity
+
+In the Forge UI, type `jpa: new entity`
+
+Since it's our first JPA entity, we need to setup our persistence layer :
+
+You can keep all the default :
+
+image::images/jpa1.png[]
+We go for `hibernate`
+
+image::images/jpa2.png[]
+
+For this workshop, we will be suing the `h2` database.
+
+Then finally we can create our `author` entity
+
+image::images/jpa3.png[]
+
+[source, bash]
+----
+jpa-new-entity --named Author
+----
+
+Look at the class that has been generated. Let's add a field now :
+
+`jpa: new field`
+
+image::images/jpa4.png[]
+
+[source, bash]
+----
+jpa-new-field --named name
+----
+
+==== Creating the Book entity
+
+Like for the previous step, create a `Book` entity and add the following fields :
+* `title`
+* `isbn`
+
+The third field is a bit more complex since it will be a `Many-to-One` relationship with `author`
+
+image::images/manytoone.png[]
+
+[source, bash]
+----
+jpa-new-field --named author --type org.bookservice.model.Author --relationship-type Many-to-One
+----
+
+Observe the entities and the different annotations.
+
+==== Creating the SellingPoint entity
+
+You are now an expert to create JPA entities, so I just give you the console commands :
+
+[source, bash]
+----
+jpa-new-entity --named SellingPoint
+jpa-new-field --named name
+jpa-new-field --named latitude --type Double
+jpa-new-field --named longitude --type Double
+----
+
+=== Creating the REST endpoints
+
+Now that we have defined our model, let's expose the CRUD (Create Read Update Delete) APIs and expose it as REST Webservice.
+
+`rest: generate ...`
+
+Like for the persistence layer, since it's the first time, you need to setup the REST layer, you can keep the defaults :
+
+image::images/rest.png[]
+
+Then, select your entities :
+
+image::images/rest2.png[]
+
+[source, bash]
+----
+rest-generate-endpoints-from-entities --targets org.bookservice.model.*
+----
+
+Look at the generated endpoints.
+
+=== Deploy our Bookservice
+
+We have now enough stuff to do a first deployment !
+A Wildfly 10 Server has already been configured for you.
+
+==== Deploy with Eclipse
+
+* Right click on the project and choose `run as\run on Server`
+
+Just follow the instructions, and you can just hit "next" for each step.
+
+==== Deploy manually
+
+* Open a terminal
+* go to your project : `cd workspace/bookservice`
+* Build the project : `mvn clean package`
+* Open a second terminal
+* Go to Wildfly server bin folder: `cd /home/wildfly-10.0.0.Final`
+* Start the server : `./standalone.sh`
+* Copy WAR file to the deployment folder : `cp /home/workspace/bookservice/target/bookservice.war /home/wildfly-10.0.0.Final/standalone/deployments`
