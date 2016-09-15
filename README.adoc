@@ -263,3 +263,90 @@ Do the same for `BookFactory.js`, we will change `SellingPointFactory.js` later.
 * Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/bookstore-swarm.jar`
 
 You can browse to `http://locahost:8081` to make sure everything is running.
+
+=== SellingPoint Swarm App
+
+Let's rewrite the SellingPoint service from scratch and let's add some cool features like `hibernate-search` and `geospatial queries`.
+Now that you know how Forge works I just give you the script, run each line or use the UI, it's up to you.
+
+CAUTION: Forge can not add import statements, so be sure to do that manually ;)
+
+[source, bash]
+----
+project-new --named sellingPoint --stack JAVA_EE_7 --type wildfly-swarm --http-port 8082
+wildfly-swarm-add-fraction --fractions hibernate-search
+# create Book entity and relationship with Author
+jpa-new-entity --named Book
+jpa-new-field --named isbn
+java-add-annotation --annotation org.hibernate.search.annotations.Field --on-property isbn
+
+# create Book entity and relationship with Author
+jpa-new-entity --named SellingPoint
+jpa-new-field --named name
+java-add-annotation --annotation org.hibernate.search.annotations.Indexed
+java-add-annotation --annotation org.hibernate.search.annotations.Spatial
+jpa-new-field --named latitude --type Double
+jpa-new-field --named longitude --type Double
+java-add-annotation --annotation org.hibernate.search.annotations.Longitude --on-property longitude
+java-add-annotation --annotation org.hibernate.search.annotations.Latitude --on-property latitude
+jpa-new-field --named books --type org.sellingPoint.model.Book --relationship-type Many-to-Many --fetch-type EAGER
+java-add-annotation --annotation org.hibernate.search.annotations.IndexedEmbedded --on-property books
+
+scaffold-generate --provider AngularJS --generate-rest-resources --targets org.sellingPoint.model.*
+wildfly-swarm-detect-fractions --depend --build
+# enable CORS
+rest-new-cross-origin-resource-sharing-filter
+----
+
+==== Add our geolocation search endpoint
+
+In `src/main/java/org/sellingPoint/rest/SellingPointEndpoint.java` , create a new method :
+
+[source, java]
+----
+@GET
+@Path("/inrange/{isbn}")
+@Produces("application/json")
+public List<SellingPoint> listByLocation(@PathParam("isbn") String isbn, @QueryParam("latitude") Double latitude,
+    @QueryParam("longitude") Double longitude) {
+  FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(em);
+  QueryBuilder builder = fullTextEntityManager.getSearchFactory().buildQueryBuilder()
+      .forEntity(SellingPoint.class).get();
+
+  org.apache.lucene.search.Query luceneQuery = builder
+
+      .spatial().within(5, Unit.KM).ofLatitude(latitude).andLongitude(longitude).createQuery();
+  org.apache.lucene.search.Query keyWordQuery = builder
+
+      .keyword().onField("books.isbn").matching(isbn).createQuery();
+  Query boolQuery = builder.bool().must(luceneQuery).must(keyWordQuery).createQuery();
+  javax.persistence.Query hibQuery = fullTextEntityManager.createFullTextQuery(boolQuery, SellingPoint.class);
+  return hibQuery.getResultList();
+}
+----
+
+Don't forget the imports !
+
+==== Add initial bootstrap data
+
+Let's add a small `sql` script that will create some entries when we start our app.
+Inside the `src/main/resources/` create a file named `import.sql` and add this :
+[source, sql]
+----
+insert into Book (id, isbn, version) values (1000, '1000',0);
+insert into Book (id, isbn, version) values (1001, '1001',0);
+insert into Book (id, isbn, version) values (1002, '1002',0);
+
+insert into SellingPoint (id, latitude, longitude, name, version) values (2000, 43.5780, 7.0545, 'bob', 0);
+insert into SellingPoint (id, latitude, longitude, name, version) values (2001, 43.574357, 7.1142449, 'chris',0);
+
+insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1000);
+insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1001);
+----
+
+==== Deploy the app
+
+* `mvn clean wildfly-swarm:run`
+* Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/sellingpoint-swarm.jar`
+
+==== Updating the Frontend app to consume the SellingPoint Service
