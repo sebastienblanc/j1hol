@@ -350,3 +350,5 @@ insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1001);
 * Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/sellingpoint-swarm.jar`
 
 ==== Updating the Frontend app to consume the SellingPoint Service
+
+First 
