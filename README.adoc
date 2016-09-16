@@ -1,3 +1,10 @@
+:icons: font
+:sectanchors:
+:toc: macro
+:toclevels: 2
+:toc-title: Table of Content
+:numbered:
+
 = JavaOne - Hands On Lab
 
 toc::[]
@@ -351,4 +358,4 @@ insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1001);
 
 ==== Updating the Frontend app to consume the SellingPoint Service
 
-First 
+First
