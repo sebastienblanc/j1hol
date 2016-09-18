@@ -649,6 +649,12 @@ The `web.xml` should look like that :
 </web-app>
 -----
 
+* Remove the CORS filter : `rm src/main/java/org/bookservice/rest/NewCrossOriginResourceSharingFilter.java`
+
+* Open `src/main/webapp/WEB-INF/keycloak.json` and add this key :
+
+`enable-cors: true`
+
 Redeploy the application and try to access any endpoints ...
 
 image::images/unauthorized.png[]
@@ -659,7 +665,50 @@ image::images/unauthorized.png[]
 * In the `src/main/webapp/app.html`, at the section where all the JS scripts are loaded, add this one as first :
 `<script src="http://localhost:8083/auth/js/keycloak.js"></script>`
 
-* In the the `<html>` tag remove the `ng-app` attribute. 
+* In the `<html>` tag remove the `ng-app` attribute.
+
+* In  `sr/main/webapp/scripts/app.js` append :
+
+[source, javascript]
+----
+var keycloak = new Keycloak('keycloak.json');
+
+angular.element(document).ready(function() {
+  keycloak.init({ onLoad: 'login-required' }).success(function () {
+    angular.bootstrap(document, ["bookservice"]);
+  }).error(function () {
+    console.log("ERROR");
+  });
+});
+
+
+angular.module('bookservice').factory('authInterceptor', function($q) {
+  return {
+    request: function (config) {
+      var deferred = $q.defer();
+      if (keycloak.token) {
+        keycloak.updateToken(5).success(function() {
+          config.headers = config.headers || {};
+          config.headers.Authorization = 'Bearer ' + keycloak.token;
+          deferred.resolve(config);
+        }).error(function() {
+          deferred.reject('Failed to refresh token');
+        });
+      }
+      return deferred.promise;
+    }
+  };
+});
+
+angular.module('bookservice').config(function($httpProvider) {
+  $httpProvider.defaults.useXDomain = true;
+  $httpProvider.interceptors.push('authInterceptor');
+});
+
+----
+
+Redeploy the app, you should now be redirected to a login screen.
+
 
 
 === Secure SellingPoint
