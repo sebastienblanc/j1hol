@@ -351,11 +351,315 @@ insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1000);
 insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1001);
 ----
 
+==== Initial boostrap data
+
+[source,sql]
+----
+insert into Book (id, isbn, version) values (1000, '1000',0);
+insert into Book (id, isbn, version) values (1001, '1001',0);
+insert into Book (id, isbn, version) values (1002, '1002',0);
+
+insert into SellingPoint (id, latitude, longitude, name, version) values (2000, 43.5780, 7.0545, 'bob', 0);
+insert into SellingPoint (id, latitude, longitude, name, version) values (2001, 43.574357, 7.1142449, 'chris',0);
+
+insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1000);
+insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1001);
+----
+
+TIP: Please change the long and lat depending on where you are.
+
+
 ==== Deploy the app
 
 * `mvn clean wildfly-swarm:run`
 * Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/sellingpoint-swarm.jar`
 
 ==== Updating the Frontend app to consume the SellingPoint Service
+In the `bookstore` app go to `src/main/webapp/scripts/services/SellingPoints.js` and replace the content with :
 
-First
+[source, javascript]
+-----
+angular.module('bookservice').factory('SellingPointResource', function($resource){
+    var resource = $resource('http://localhost:8082/rest/sellingpoints/inrange/:Isbn',{Isbn:'@isbn'},{'queryAll':{method:'GET',isArray:true},'query':{method:'GET',isArray:false},'update':{method:'PUT'}});
+    return resource;
+});
+-----
+
+In `src/main.webapp/scripts/controllers/searchSellingPointController.js` reaplce with :
+
+[source, javascript]
+----
+
+
+angular.module('bookservice').controller('SearchSellingPointController', function($scope, $window, $http, $filter, SellingPointResource ) {
+
+	navigator.geolocation.getCurrentPosition(function(position){
+		$scope.latitude = position.coords.latitude;
+		$scope.longitude = position.coords.longitude;
+		$scope.$apply();
+
+	}, function(error){});
+
+    $scope.search={};
+    $scope.currentPage = 0;
+    $scope.pageSize= 10;
+    $scope.searchResults = [];
+    $scope.filteredResults = [];
+    $scope.pageRange = [];
+    $scope.numberOfPages = function() {
+        var result = Math.ceil($scope.filteredResults.length/$scope.pageSize);
+        var max = (result == 0) ? 1 : result;
+        $scope.pageRange = [];
+        for(var ctr=0;ctr<max;ctr++) {
+            $scope.pageRange.push(ctr);
+        }
+        return max;
+    };
+
+    $scope.performSearch = function() {
+        $scope.searchResults = SellingPointResource.queryAll({Isbn:$scope.isbn, longitude:$scope.longitude,latitude:$scope.latitude},function(){
+            $scope.filteredResults = $filter('searchFilter')($scope.searchResults, $scope);
+            $scope.currentPage = 0;
+        });
+    };
+
+    $scope.previous = function() {
+       if($scope.currentPage > 0) {
+           $scope.currentPage--;
+       }
+    };
+
+    $scope.next = function() {
+       if($scope.currentPage < ($scope.numberOfPages() - 1) ) {
+           $scope.currentPage++;
+       }
+    };
+
+    $scope.setPage = function(n) {
+       $scope.currentPage = n;
+    };
+
+    //$scope.performSearch();
+});
+----
+
+And finally, in the view `src/main/webapp/views/SellingPoint/search.html` :
+
+[source, html]
+-----
+<div>
+    <h3>Search books around you</h3>
+    <form id="SellingPointSearch" class="form-horizontal">
+
+
+    <div class="form-group">
+        <label for="name" class="col-sm-2 control-label">ISBN</label>
+        <div class="col-sm-10">
+            <input id="name" name="name" class="form-control" type="text" ng-model="isbn" placeholder="Enter the SellingPoint Name"></input>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="latitude" class="col-sm-2 control-label">Latitude</label>
+        <div class="col-sm-10">
+            <input id="latitude" name="latitude" class="form-control" type="text" ng-model="latitude" placeholder="Enter the SellingPoint Latitude"></input>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="longitude" class="col-sm-2 control-label">Longitude</label>
+        <div class="col-sm-10">
+            <input id="longitude" name="longitude" class="form-control" type="text" ng-model="longitude" placeholder="Enter the SellingPoint Longitude"></input>
+        </div>
+    </div>
+
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-sm-10">
+                <a id="Search" name="Search" class="btn btn-primary" ng-click="performSearch()"><span class="glyphicon glyphicon-search"></span> Search</a>
+            </div>
+        </div>
+    </form>
+</div>
+<div id="search-results">
+        <div class="table-responsive">
+        <table class="table table-responsive table-bordered table-striped clearfix">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                </tr>
+            </thead>
+            <tbody id="search-results-body">
+                <tr ng-repeat="result in filteredResults | startFrom:currentPage*pageSize | limitTo:pageSize">
+                    <td><a href="#/SellingPoints/edit/{{result.id}}">{{result.name}}</a></td>
+                    <td><a href="#/SellingPoints/edit/{{result.id}}">{{result.latitude}}</a></td>
+                    <td><a href="#/SellingPoints/edit/{{result.id}}">{{result.longitude}}</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+        <ul class="pagination pagination-centered">
+        <li ng-class="{disabled:currentPage == 0}">
+            <a id="prev" href ng-click="previous()">«</a>
+        </li>
+        <li ng-repeat="n in pageRange" ng-class="{active:currentPage == n}" ng-click="setPage(n)">
+            <a href ng-bind="n + 1">1</a>
+        </li>
+        <li ng-class="{disabled: currentPage == (numberOfPages() - 1)}">
+            <a id="next" href ng-click="next()">»</a>
+        </li>
+    </ul>
+
+</div>
+-----
+
+Rebuild your app and deploy it, you should now be able to perform Spacial Queries
+
+== Secure All the Things !!
+=== Keycloak Introduction
+
+=== Create Keycloak Server Microservice
+
+Create a new project called `keycloak-server` , choose for :
+* stack JAVA_EE_7
+* type wildfly-swarm
+* Set http port to `8083`
+* Add Fraction `keycloak-server`
+
+[source, bash]
+----
+project-new --named keycloak-server --stack JAVA_EE_7 --type wildfly-swarm --http-port 8083
+wildfly-swarm-add-fraction --fractions keycloak-server
+----
+
+This is all you have to do to run a KeyCloak Server
+
+==== Deploy the app
+
+* `mvn clean wildfly-swarm:run`
+* Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/keycloak-server-swarm.jar`
+
+==== Set the admin user
+
+* Browse to `http://localhost:8083/auth` and set the admin user credentials
+
+image::images/keycloak1.png[]
+
+==== Create a new Realm
+
+* Browse to the master realm and login
+
+image::images/keycloak2.png[]
+
+* Create a new realm `javaonehol`
+
+image::images/keycloak3.png[]
+
+==== Configure Keycloak Server
+
+===== Create a `role` user
+
+image::images/addrolekc.png[]
+
+===== Create new user
+
+image::images/adduserkc.png[]
+
+===== Reset credentials
+
+image::images/credentials.png[]
+
+
+==== Set Role Mapping
+
+image::images/rolemapping.png[]
+
+==== Create bookservice client
+
+image::images/newclient.png[]
+
+On the next screen set the client to `bearer Only` :
+
+image::images/beareronly.png[]
+
+===== Download keycloak.json
+
+* In the installation tab , select `Keycloak OIDC JSON` format and download the file.
+
+* Copy it to `bookstore/src/main/webapp/WEB-INF`
+
+==== Create bookfrontend client
+
+image:images/bookstorekc.png[]
+
+===== Download keycloak.json
+
+* In the installation tab , select `Keycloak OIDC JSON` format and download the file.
+
+* Copy it to `bookservice/src/main/webapp`
+
+CAUTION: Be sure to set the redirect URL
+
+==== Create sellingpoint client
+
+Same instructions as for the 'bookservice client'
+
+=== Secure BookService App
+
+Go back to Eclipse and open your Forge UI :
+
+* Add a new swarm fraction : `keycloak`
+* Search for "Security Add login config" :
+** Realm : `javaonehol`
+** Authentification Method : `KEYCLOAK`
+
+image::images/securitylogin.png[]
+
+Add security constraints :
+* Search for "Security Add constraint"
+
+[source, bash]
+-----
+security-add-constraint --web-resource-name Book --url-patterns /rest/* --security-roles user
+-----
+
+The `web.xml` should look like that :
+
+[source, xml]
+-----
+<login-config>
+<auth-method>KEYCLOAK</auth-method>
+  <realm-name>javaonehol</realm-name>
+</login-config>
+<security-role>
+<role-name>user</role-name>
+</security-role>
+<security-constraint>
+<web-resource-collection>
+  <web-resource-name>Book</web-resource-name>
+    <url-pattern>/rest/*</url-pattern>
+  </web-resource-collection>
+  <auth-constraint>
+  <role-name>user</role-name>
+  </auth-constraint>
+</security-constraint>
+</web-app>
+-----
+
+Redeploy the application and try to access any endpoints ...
+
+image::images/unauthorized.png[]
+
+
+=== Secure BookStore Frontend App
+
+* In the `src/main/webapp/app.html`, at the section where all the JS scripts are loaded, add this one as first :
+`<script src="http://localhost:8083/auth/js/keycloak.js"></script>`
+
+* In the the `<html>` tag remove the `ng-app` attribute. 
+
+
+=== Secure SellingPoint
