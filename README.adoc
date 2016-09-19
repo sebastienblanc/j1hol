@@ -581,7 +581,7 @@ image::images/rolemapping.png[]
 
 image::images/newclient.png[]
 
-On the next screen set the client to `Bearer Only` :
+On the next screen set the client to `bearer-only` :
 
 image::images/beareronly.png[]
 
