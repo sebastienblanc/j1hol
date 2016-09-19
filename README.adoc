@@ -58,7 +58,7 @@ We go for `hibernate`
 
 image::images/jpa2.png[]
 
-For this workshop, we will be suing the `h2` database.
+For this workshop, we will be using the `h2` database.
 
 Then finally we can create our `author` entity
 
@@ -167,7 +167,7 @@ Just follow the instructions, and you can just hit "next" for each step.
 
 The `bookservice` should now be deployed, browse to `http://localhost:8080/bookservice/rest/authors` it should returns an array with 2 authors.
 
-=== Scaffolding the Frontend
+=== Scaffolding the front-end
 
 Let's create a CRUD Web client, with Forge it's really easy :
 * Start the Forge UI and search for `scaffold: generate`.
@@ -186,7 +186,7 @@ Now, let's decompose this application into 3 different microservices :
 
 * The book Service
 * The SellingPoint Service
-* The Frontend
+* The Front-end
 
 Let's start with turning our app into a Swarm Microsevice
 
@@ -210,7 +210,7 @@ wildfly-swarm-detect-fractions --depend --build
 
 ==== Enable CORS
 
-Our microservice will be consumed from other domains, therefore we need to enable CORS, that's also easy with Forge, search for `REST: New Cross Origin Resource Sharing Filer` :
+Our microservice will be consumed from other domains, therefore we need to enable CORS, that's also easy with Forge, search for `REST: New Cross Origin Resource Sharing Filter` :
 
 image::images/cors.png[]
 
@@ -226,9 +226,9 @@ You have two options from a terminal :
 * `mvn clean wildfly-swarm:run`
 * Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/bookservice-swarm.jar`
 
-Ok, now backend is running now as a microservice, let's extract the Frontend into a standalone microservice as well.
+Ok, the back-end is now running as a microservice, let's extract the front-end into a standalone microservice as well.
 
-=== Frontend Swarm application
+=== Front-end Swarm application
 
 Create a new project with Forge called `bookstore` and for Project type choose "Wildfly Swarm Microservice", for the stack choose "JavaEE 7".
 
@@ -246,7 +246,7 @@ project-new --named bookstorefrontend --stack JAVA_EE_7 --type wildfly-swarm --h
 wildfly-swarm-add-fraction --fractions undertow
 ----
 
-Now we need to copy, the content of the `src/main/webapp` folder from our first project `bookservice` into the `src/main/webapp` of the `bookstore` project.
+Now we need to copy, the contents of the `src/main/webapp` folder from our first project `bookservice` into the `src/main/webapp` of the `bookstore` project.
 You can do this using the Eclipse explorer or by running this forge command :
 
 [source, bash]
@@ -254,9 +254,9 @@ You can do this using the Eclipse explorer or by running this forge command :
 mv ../bookservice/src/main/webapp/ src/main/
 ----
 
-==== Update the frontend AngularJS Rest services
+==== Update the front-end AngularJS Rest services
 
-Our Frontend must now call a remote REST service, open first :
+Our front-end must now call a remote REST service, open first :
 
 `src/main/webapp/scripts/services/AuthorFactory.js`
 
@@ -276,7 +276,7 @@ You can browse to `http://locahost:8081` to make sure everything is running.
 Let's rewrite the SellingPoint service from scratch and let's add some cool features like `hibernate-search` and `geospatial queries`.
 Now that you know how Forge works I just give you the script, run each line or use the UI, it's up to you.
 
-CAUTION: Forge can not add import statements, so be sure to do that manually ;)
+CAUTION: Forge may not add import statements, so be sure to do that manually if that happens ;)
 
 [source, bash]
 ----
@@ -366,7 +366,7 @@ insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1000);
 insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1001);
 ----
 
-TIP: Please change the long and lat depending on where you are.
+TIP: Please change the longitude and latitude depending on where you are.
 
 
 ==== Deploy the app
@@ -374,7 +374,7 @@ TIP: Please change the long and lat depending on where you are.
 * `mvn clean wildfly-swarm:run`
 * Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/sellingpoint-swarm.jar`
 
-==== Updating the Frontend app to consume the SellingPoint Service
+==== Updating the front-end app to consume the SellingPoint Service
 In the `bookstore` app go to `src/main/webapp/scripts/services/SellingPoints.js` and replace the content with :
 
 [source, javascript]
@@ -385,7 +385,7 @@ angular.module('bookservice').factory('SellingPointResource', function($resource
 });
 -----
 
-In `src/main.webapp/scripts/controllers/searchSellingPointController.js` reaplce with :
+In `src/main.webapp/scripts/controllers/searchSellingPointController.js` replace with :
 
 [source, javascript]
 ----
@@ -516,7 +516,7 @@ And finally, in the view `src/main/webapp/views/SellingPoint/search.html` :
 </div>
 -----
 
-Rebuild your app and deploy it, you should now be able to perform Spacial Queries
+Rebuild your app and deploy it, you should now be able to perform Spatial Queries
 
 == Secure All the Things !!
 === Keycloak Introduction
@@ -524,15 +524,15 @@ Rebuild your app and deploy it, you should now be able to perform Spacial Querie
 === Create Keycloak Server Microservice
 
 Create a new project called `keycloak-server` , choose for :
-* stack JAVA_EE_7
-* type wildfly-swarm
+
+* Stack: JAVA_EE_7
+* Type: wildfly-swarm
 * Set http port to `8083`
 * Add Fraction `keycloak-server`
 
 [source, bash]
 ----
-project-new --named keycloak-server --stack JAVA_EE_7 --type wildfly-swarm --http-port 8083
-wildfly-swarm-add-fraction --fractions keycloak-server
+project-new --named keycloak-server --stack JAVA_EE_7 --type wildfly-swarm --http-port 8083 --fractions keycloak-server
 ----
 
 This is all you have to do to run a KeyCloak Server
@@ -581,7 +581,7 @@ image::images/rolemapping.png[]
 
 image::images/newclient.png[]
 
-On the next screen set the client to `bearer Only` :
+On the next screen set the client to `bearer-only` :
 
 image::images/beareronly.png[]
 
@@ -612,7 +612,7 @@ Same instructions as for the 'bookservice client'
 Go back to Eclipse and open your Forge UI :
 
 * Add a new swarm fraction : `keycloak`
-* Search for "Security Add login config" :
+* Search for "Security Add Login Config" :
 ** Realm : `javaonehol`
 ** Authentification Method : `KEYCLOAK`
 
@@ -649,7 +649,7 @@ The `web.xml` should look like that :
 </web-app>
 -----
 
-* Remove the CORS filter : `rm src/main/java/org/bookservice/rest/NewCrossOriginResourceSharingFilter.java`
+* KeyCloak will handle CORS for us, so make sure to remove the CORS filter : `rm src/main/java/org/bookservice/rest/NewCrossOriginResourceSharingFilter.java`
 
 * Open `src/main/webapp/WEB-INF/keycloak.json` and add this key :
 
@@ -660,7 +660,7 @@ Redeploy the application and try to access any endpoints ...
 image::images/unauthorized.png[]
 
 
-=== Secure BookStore Frontend App
+=== Secure BookStore front-end App
 
 * In the `src/main/webapp/app.html`, at the section where all the JS scripts are loaded, add this one as first :
 `<script src="http://localhost:8083/auth/js/keycloak.js"></script>`
