@@ -524,15 +524,15 @@ Rebuild your app and deploy it, you should now be able to perform Spatial Querie
 === Create Keycloak Server Microservice
 
 Create a new project called `keycloak-server` , choose for :
-* stack JAVA_EE_7
-* type wildfly-swarm
+
+* Stack: JAVA_EE_7
+* Type: wildfly-swarm
 * Set http port to `8083`
 * Add Fraction `keycloak-server`
 
 [source, bash]
 ----
-project-new --named keycloak-server --stack JAVA_EE_7 --type wildfly-swarm --http-port 8083
-wildfly-swarm-add-fraction --fractions keycloak-server
+project-new --named keycloak-server --stack JAVA_EE_7 --type wildfly-swarm --http-port 8083 --fractions keycloak-server
 ----
 
 This is all you have to do to run a KeyCloak Server
