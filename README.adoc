@@ -1,6 +1,6 @@
 :icons: font
 :sectanchors:
-:toc: macro
+:toc: left
 :toclevels: 2
 :toc-title: Table of Content
 :numbered:
