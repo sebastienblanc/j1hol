@@ -5,7 +5,7 @@
 :toc-title: Table of Content
 :numbered:
 :source-highlighter: highlight.js
-= Snowcamp.io - University
+= Devoxx.FR - Hands-on Labs
 
 toc::[]
 
