@@ -183,20 +183,37 @@ Let's start with turning our app into a Swarm Microsevice
 
 === Bookservice Swarm application
 
+==== Add the Swarm Addon
+
+Simple call the `Install an Addon from GIT` command :
+
+image::images/addon-swarm.png[]
+
+[source, bash]
+----
+addon-install-from-git --url https://github.com/forge/wildfly-swarm-addon.git
+----
+
 To turn our app into a Swarm app it's really easy, from the Forge UI search for `Wildfly-Swarm: Setup` , keep the default and click `finish`
 
 image::images/swarm1.png[]
-
-Now, let's detect the fractions and them to our `pom.xml` , Look up for the `Wildfly-Swarm: Detect Fractions` command and be sure to check `Add Missing Fractions as Project Dependencies` :
-
-image::images/swarm2.png[]
 
 Inspect your `pom.xml` to see the changes.
 
 [source, bash]
 ----
 wildfly-swarm-setup
-wildfly-swarm-detect-fractions --depend --build
+----
+
+==== Add JDBC Driver
+
+Let's add the H2 JDBC Driver, with the command `JDBC Add Dependency`
+
+image::images/jdbc-command.png[]
+
+[source, bash]
+----
+jdbc-add-dependency --db-type H2 --scope runtime
 ----
 
 ==== Enable CORS
