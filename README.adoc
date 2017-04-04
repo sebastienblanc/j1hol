@@ -308,7 +308,7 @@ jpa-new-field --named books --type org.sellingPoint.model.Book --relationship-ty
 java-add-annotation --annotation org.hibernate.search.annotations.IndexedEmbedded --on-property books
 
 scaffold-generate --provider AngularJS --generate-rest-resources --targets org.sellingPoint.model.*
-wildfly-swarm-detect-fractions --depend --build
+
 # enable CORS
 rest-new-cross-origin-resource-sharing-filter
 ----
@@ -378,6 +378,17 @@ TIP: Please change the longitude and latitude depending on where you are.
 
 
 ==== Deploy the app
+
+* Since we added "manually" the `hibernate-search` fraction , the autodetect feature won't work anymore. We need to change the `fractionDetectMode` in the maven plugin.
+Inside the plugin definition add a `configuration` section :
+
+[source, xml]
+-----
+<configuration>
+         <fractionDetectMode>force</fractionDetectMode>
+</configuration>
+
+-----
 
 * `mvn clean wildfly-swarm:run`
 * Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/sellingpoint-swarm.jar`
@@ -538,7 +549,7 @@ This is all you have to do to run a KeyCloak Server
 
 ==== Deploy the app
 
-* `./standalone.sh`
+* `./standalone.sh -Djboss.socket.binding.port-offset=100`
 
 ==== Create a new Realm
 
@@ -618,7 +629,7 @@ Add security constraints :
 security-add-constraint --web-resource-name Book --url-patterns /rest/* --security-roles user
 -----
 
-The `web.xml` should look like that :
+The `web.xml` security part should look like that :
 
 [source, xml]
 -----
@@ -638,7 +649,7 @@ The `web.xml` should look like that :
   <role-name>user</role-name>
   </auth-constraint>
 </security-constraint>
-</web-app>
+
 -----
 
 * KeyCloak will handle CORS for us, so make sure to remove the CORS filter : `rm src/main/java/org/bookservice/rest/NewCrossOriginResourceSharingFilter.java`
@@ -646,6 +657,17 @@ The `web.xml` should look like that :
 * Open `src/main/webapp/WEB-INF/keycloak.json` and add this key :
 
 `enable-cors: true`
+
+* Since we added "manually" the `keycloak` fraction , the autodetect feature won't work anymore. We need to change the `fractionDetectMode` in the maven plugin.
+Inside the plugin definition add a `configuration` section :
+
+[source, xml]
+-----
+<configuration>
+         <fractionDetectMode>force</fractionDetectMode>
+</configuration>
+
+-----
 
 Redeploy the application and try to access any endpoints ...
 
