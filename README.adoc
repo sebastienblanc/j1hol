@@ -296,7 +296,7 @@ TIP: If the Forge console is not visible in your eclipse workspace, you can open
 [source, bash]
 ----
 project-new --named sellingPoint --stack JAVA_EE_7 --type wildfly-swarm --http-port 8082
-wildfly-swarm-add-fraction --fractions hibernate-search
+wildfly-swarm-add-fraction --fractions hibernate-search datasources ejb jpa jaxrs
 # create Book entity and relationship with Author
 jpa-new-entity --named Book
 jpa-new-field --named isbn
@@ -376,16 +376,6 @@ TIP: Please change the longitude and latitude depending on where you are.
 
 
 ==== Deploy the app
-
-* Since we added "manually" the `hibernate-search` fraction , the autodetect feature won't work anymore. We need to change the `fractionDetectMode` in the maven plugin.
-Inside the plugin definition add a `configuration` section :
-+
-[source, xml]
------
-<configuration>
-    <fractionDetectMode>force</fractionDetectMode>
-</configuration>
------
 
 * `mvn clean wildfly-swarm:run`
 * Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/sellingpoint-swarm.jar`
