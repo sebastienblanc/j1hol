@@ -541,7 +541,7 @@ Rebuild your app and deploy it, you should now be able to perform Spatial Querie
 === Deploy Keycloak Server
 
 * Unzip the Keycloak distribution
-* Add the user by running `$KEYCLOAK_SERVER/bin/add-user-keycloak.sh`
+* Add the admin user by running `$KEYCLOAK_SERVER/bin/add-user-keycloak.sh` (optional)
 
 This is all you have to do to run a KeyCloak Server
 
@@ -651,22 +651,18 @@ The `web.xml` security part should look like that :
 
 -----
 
-* KeyCloak will handle CORS for us, so make sure to remove the CORS filter : `rm src/main/java/org/bookservice/rest/NewCrossOriginResourceSharingFilter.java`
+* KeyCloak will handle CORS for us, so make sure to remove the CORS filter: `rm src/main/java/org/bookservice/rest/NewCrossOriginResourceSharingFilter.java`
 
-* Open `src/main/webapp/WEB-INF/keycloak.json` and add this key :
+* Open `src/main/webapp/WEB-INF/keycloak.json` and add this key:
 
-`enable-cors: true`
+  enable-cors: true
 
-* Since we added "manually" the `keycloak` fraction , the autodetect feature won't work anymore. We need to change the `fractionDetectMode` in the maven plugin.
-Inside the plugin definition add a `configuration` section :
-
-[source, xml]
------
+* Since we _manually_ added the `keycloak` fraction , the autodetect feature won't work anymore. We need to change the `fractionDetectMode` in the Maven plugin.
+Inside the plugin definition add a `configuration` section:
+[source,xml]
 <configuration>
-         <fractionDetectMode>force</fractionDetectMode>
+    <fractionDetectMode>force</fractionDetectMode>
 </configuration>
-
------
 
 Redeploy the application and try to access any endpoints ...
 
@@ -675,12 +671,12 @@ image::images/unauthorized.png[]
 
 === Secure BookStore front-end App
 
-* In the `src/main/webapp/app.html`, at the section where all the JS scripts are loaded, add this one as first :
+* In the `src/main/webapp/app.html`, at the section where all the JS scripts are loaded, add this one as first:
 `<script src="http://localhost:8180/auth/js/keycloak.js"></script>`
 
-* In the `<html>` tag remove the `ng-app` attribute.
+* In the `<html>` tag remove the `ng-app` attribute
 
-* In  `sr/main/webapp/scripts/app.js` append :
+* In  `src/main/webapp/scripts/app.js` append:
 
 [source, javascript]
 ----
