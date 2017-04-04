@@ -379,13 +379,12 @@ TIP: Please change the longitude and latitude depending on where you are.
 
 * Since we added "manually" the `hibernate-search` fraction , the autodetect feature won't work anymore. We need to change the `fractionDetectMode` in the maven plugin.
 Inside the plugin definition add a `configuration` section :
-
++
 [source, xml]
 -----
 <configuration>
-         <fractionDetectMode>force</fractionDetectMode>
+    <fractionDetectMode>force</fractionDetectMode>
 </configuration>
-
 -----
 
 * `mvn clean wildfly-swarm:run`
@@ -627,23 +626,26 @@ image::images/securitylogin.png[]
 security-add-constraint --web-resource-name Book --url-patterns /rest/* --security-roles user
 
 * The `web.xml` security part should look like that:
++
 [source, xml]
+----
 <login-config>
-<auth-method>KEYCLOAK</auth-method>
+  <auth-method>KEYCLOAK</auth-method>
   <realm-name>javaonehol</realm-name>
 </login-config>
 <security-role>
-<role-name>user</role-name>
+  <role-name>user</role-name>
 </security-role>
 <security-constraint>
-<web-resource-collection>
-  <web-resource-name>Book</web-resource-name>
+  <web-resource-collection>
+    <web-resource-name>Book</web-resource-name>
     <url-pattern>/rest/*</url-pattern>
   </web-resource-collection>
   <auth-constraint>
-  <role-name>user</role-name>
+    <role-name>user</role-name>
   </auth-constraint>
 </security-constraint>
+----
 
 * KeyCloak will handle CORS for us, so make sure to remove the CORS filter: `rm src/main/java/org/bookservice/rest/NewCrossOriginResourceSharingFilter.java`
 
@@ -653,10 +655,13 @@ security-add-constraint --web-resource-name Book --url-patterns /rest/* --securi
 
 * Since we _manually_ added the `keycloak` fraction, the autodetect feature won't work anymore. We need to change the `fractionDetectMode` in the Maven plugin.
 Inside the plugin definition add a `configuration` section:
++
 [source,xml]
+----
 <configuration>
     <fractionDetectMode>force</fractionDetectMode>
 </configuration>
+----
 
 Redeploy the application and try to access any endpoints...
 
@@ -666,12 +671,13 @@ image::images/unauthorized.png[]
 === Secure BookStore front-end App
 
 * In the `src/main/webapp/app.html`, at the section where all the JS scripts are loaded, add this one as first:
-`<script src="http://localhost:8180/auth/js/keycloak.js"></script>`
+
+  <script src="http://localhost:8180/auth/js/keycloak.js"></script>
 
 * In the `<html>` tag remove the `ng-app` attribute
 
 * In `src/main/webapp/scripts/app.js` append:
-
++
 [source, javascript]
 ----
 var keycloak = new Keycloak('keycloak.json');
@@ -706,7 +712,6 @@ angular.module('bookservice').config(function($httpProvider) {
   $httpProvider.defaults.useXDomain = true;
   $httpProvider.interceptors.push('authInterceptor');
 });
-
 ----
 
 Redeploy the app, you should now be redirected to a login screen.
