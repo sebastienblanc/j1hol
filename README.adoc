@@ -596,15 +596,17 @@ image::images/beareronly.png[]
 
 image:images/bookstorekc.png[]
 
-CAUTION: Mind setting the *Web Origins* field to `*`
+[CAUTION]
+====
+* Be sure to set the redirect URL
+* Mind setting the *Web Origins* field to `*`
+====
 
 ===== Download `keycloak.json`:
 
 * In the installation tab , select `Keycloak OIDC JSON` format and download the file
 
 * Copy it to `bookservice/src/main/webapp`
-
-CAUTION: Be sure to set the redirect URL
 
 ==== Create `sellingpoint` client
 
