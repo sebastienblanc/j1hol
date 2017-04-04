@@ -562,11 +562,11 @@ image::images/keycloak3.png[]
 
 ==== Configure Keycloak Server
 
-===== Create a `role` user
+===== Create a `user` role
 
 image::images/addrolekc.png[]
 
-===== Create new user
+===== Create a new user
 
 image::images/adduserkc.png[]
 
@@ -579,59 +579,53 @@ image::images/credentials.png[]
 
 image::images/rolemapping.png[]
 
-==== Create bookservice client
+==== Create `bookservice` client
 
 image::images/newclient.png[]
 
-On the next screen set the client to `bearer-only` :
+On the next screen set the client to `bearer-only`:
 
 image::images/beareronly.png[]
 
-===== Download keycloak.json
+===== Download `keycloak.json`:
 
-* In the installation tab , select `Keycloak OIDC JSON` format and download the file.
+* In the installation tab , select `Keycloak OIDC JSON` format and download the file
 
 * Copy it to `bookstore/src/main/webapp/WEB-INF`
 
-==== Create bookfrontend client
+==== Create `bookstore` client
 
 image:images/bookstorekc.png[]
 
-===== Download keycloak.json
+===== Download `keycloak.json`:
 
-* In the installation tab , select `Keycloak OIDC JSON` format and download the file.
+* In the installation tab , select `Keycloak OIDC JSON` format and download the file
 
 * Copy it to `bookservice/src/main/webapp`
 
 CAUTION: Be sure to set the redirect URL
 
-==== Create sellingpoint client
+==== Create `sellingpoint` client
 
-Same instructions as for the 'bookservice client'
+Same instructions as for the `bookservice` client.
 
 === Secure BookService App
 
-Go back to Eclipse and open your Forge UI :
+Go back to Eclipse and open your Forge UI:
 
-* Add a new swarm fraction : `keycloak`
-* Search for "Security Add Login Config" :
-** Realm : `javaonehol`
-** Authentification Method : `KEYCLOAK`
+* Add a new swarm fraction: `keycloak`
+* Search for "Security Add Login Config":
+** Realm: `javaonehol`
+** Authentification method: `KEYCLOAK`
 
 image::images/securitylogin.png[]
 
-Add security constraints :
-* Search for "Security Add constraint"
-
+* Search for "Security Add constraint" and add the following constraint:
 [source, bash]
------
 security-add-constraint --web-resource-name Book --url-patterns /rest/* --security-roles user
------
 
-The `web.xml` security part should look like that :
-
+* The `web.xml` security part should look like that:
 [source, xml]
------
 <login-config>
 <auth-method>KEYCLOAK</auth-method>
   <realm-name>javaonehol</realm-name>
@@ -649,22 +643,20 @@ The `web.xml` security part should look like that :
   </auth-constraint>
 </security-constraint>
 
------
-
 * KeyCloak will handle CORS for us, so make sure to remove the CORS filter: `rm src/main/java/org/bookservice/rest/NewCrossOriginResourceSharingFilter.java`
 
 * Open `src/main/webapp/WEB-INF/keycloak.json` and add this key:
 
   enable-cors: true
 
-* Since we _manually_ added the `keycloak` fraction , the autodetect feature won't work anymore. We need to change the `fractionDetectMode` in the Maven plugin.
+* Since we _manually_ added the `keycloak` fraction, the autodetect feature won't work anymore. We need to change the `fractionDetectMode` in the Maven plugin.
 Inside the plugin definition add a `configuration` section:
 [source,xml]
 <configuration>
     <fractionDetectMode>force</fractionDetectMode>
 </configuration>
 
-Redeploy the application and try to access any endpoints ...
+Redeploy the application and try to access any endpoints...
 
 image::images/unauthorized.png[]
 
@@ -676,7 +668,7 @@ image::images/unauthorized.png[]
 
 * In the `<html>` tag remove the `ng-app` attribute
 
-* In  `src/main/webapp/scripts/app.js` append:
+* In `src/main/webapp/scripts/app.js` append:
 
 [source, javascript]
 ----
@@ -689,7 +681,6 @@ angular.element(document).ready(function() {
     console.log("ERROR");
   });
 });
-
 
 angular.module('bookservice').factory('authInterceptor', function($q) {
   return {
