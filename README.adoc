@@ -553,7 +553,8 @@ This is all you have to do to run a KeyCloak Server
 
 ==== Create a new Realm
 
-* Browse to the master realm and login
+* Open the KeyCloak management console at http://localhost:8180/auth
+* Login and browse to the master realm
 
 image::images/keycloak2.png[]
 
@@ -677,7 +678,7 @@ image::images/unauthorized.png[]
 === Secure BookStore front-end App
 
 * In the `src/main/webapp/app.html`, at the section where all the JS scripts are loaded, add this one as first :
-`<script src="http://localhost:8083/auth/js/keycloak.js"></script>`
+`<script src="http://localhost:8180/auth/js/keycloak.js"></script>`
 
 * In the `<html>` tag remove the `ng-app` attribute.
 
