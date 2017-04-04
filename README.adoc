@@ -11,11 +11,12 @@ toc::[]
 
 == Starting the Forge Wizard
 
-Press `Ctrl + 4` :
+Press `Ctrl + 4` (`Cmd+4` on MacOS):
 
 image::images/forge1.png[]
 
-TIP: You can also use at any time the Forge Console.
+TIP: You can also use at any time the Forge Console. +
+If the Forge console is not visible in your eclipse workspace, you can open it by navigating to Window → Show View → Other → Forge → Forge Console.
 
 == Creating the BookService
 
@@ -74,6 +75,7 @@ jpa-new-field --named name
 ==== Creating the Book entity
 
 Like for the previous step, create a `Book` entity and add the following fields :
+
 * `title`
 * `isbn`
 
@@ -161,6 +163,7 @@ The `bookservice` should now be deployed, browse to `http://localhost:8080/books
 === Scaffolding the front-end
 
 Let's create a CRUD Web client, with Forge it's really easy :
+
 * Start the Forge UI and search for `scaffold: generate`.
 * Choose for `AngularJS` for the Scaffold Type.
 * Select all the entities
@@ -218,6 +221,8 @@ jdbc-add-dependency --db-type H2 --scope runtime
 
 ==== Enable CORS
 
+TIP: CORS is W3C recommendation to allow browser requesting resource from another domain.
+
 Our microservice will be consumed from other domains, therefore we need to enable CORS, that's also easy with Forge, search for `REST: New Cross Origin Resource Sharing Filter` :
 
 image::images/cors.png[]
@@ -268,7 +273,7 @@ Our front-end must now call a remote REST service, open first :
 
 `src/main/webapp/scripts/services/AuthorFactory.js`
 
-find we specify the URL and replace it with `http://localhost:8080/rest/authors/:AuthorId`.
+find where we specify the URL and replace it with `http://localhost:8080/rest/authors/:AuthorId`.
 
 Do the same for `BookFactory.js`, we will change `SellingPointFactory.js` later.
 
@@ -277,7 +282,7 @@ Do the same for `BookFactory.js`, we will change `SellingPointFactory.js` later.
 * `mvn clean wildfly-swarm:run`
 * Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/bookstore-swarm.jar`
 
-You can browse to `http://locahost:8081` to make sure everything is running.
+You can browse to `http://localhost:8081` to make sure everything is running.
 
 === SellingPoint Swarm App
 
@@ -285,6 +290,8 @@ Let's rewrite the SellingPoint service from scratch and let's add some cool feat
 Now that you know how Forge works I just give you the script, run each line or use the UI, it's up to you.
 
 CAUTION: Forge may not add import statements, so be sure to do that manually if that happens ;)
+
+TIP: If the Forge console is not visible in your eclipse workspace, you can open it by navigating to Window → Show View → Other → Forge → Forge Console.
 
 [source, bash]
 ----
@@ -311,6 +318,8 @@ scaffold-generate --provider AngularJS --generate-rest-resources --targets org.s
 
 # enable CORS
 rest-new-cross-origin-resource-sharing-filter
+
+jdbc-add-dependency --db-type H2 --scope runtime
 ----
 
 ==== Add our geolocation search endpoint
@@ -324,8 +333,8 @@ In `src/main/java/org/sellingPoint/rest/SellingPointEndpoint.java` , create a ne
 @Produces("application/json")
 public List<SellingPoint> listByLocation(@PathParam("isbn") String isbn, @QueryParam("latitude") Double latitude,
     @QueryParam("longitude") Double longitude) {
-  FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(em);
-  QueryBuilder builder = fullTextEntityManager.getSearchFactory().buildQueryBuilder()
+  FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(em); //<1>
+  QueryBuilder builder = fullTextEntityManager.getSearchFactory().buildQueryBuilder() //<2>
       .forEntity(SellingPoint.class).get();
 
   org.apache.lucene.search.Query luceneQuery = builder
@@ -334,11 +343,14 @@ public List<SellingPoint> listByLocation(@PathParam("isbn") String isbn, @QueryP
   org.apache.lucene.search.Query keyWordQuery = builder
 
       .keyword().onField("books.isbn").matching(isbn).createQuery();
-  Query boolQuery = builder.bool().must(luceneQuery).must(keyWordQuery).createQuery();
+  org.apache.lucene.search.Query boolQuery = builder.bool().must(luceneQuery).must(keyWordQuery).createQuery();
   javax.persistence.Query hibQuery = fullTextEntityManager.createFullTextQuery(boolQuery, SellingPoint.class);
   return hibQuery.getResultList();
 }
 ----
+<1> `org.hibernate.search.jpa.FullTextEntityManager` and `org.hibernate.search.jpa.Search`
+<2> `org.hibernate.search.query.dsl.QueryBuilder`
+
 
 Don't forget the imports !
 
@@ -359,20 +371,6 @@ insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1000);
 insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1001);
 ----
 
-==== Initial boostrap data
-
-[source,sql]
-----
-insert into Book (id, isbn, version) values (1000, '1000',0);
-insert into Book (id, isbn, version) values (1001, '1001',0);
-insert into Book (id, isbn, version) values (1002, '1002',0);
-
-insert into SellingPoint (id, latitude, longitude, name, version) values (2000, 43.5780, 7.0545, 'bob', 0);
-insert into SellingPoint (id, latitude, longitude, name, version) values (2001, 43.574357, 7.1142449, 'chris',0);
-
-insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1000);
-insert into SellingPoint_Book (SellingPoint_id, books_id) values (2000,1001);
-----
 
 TIP: Please change the longitude and latitude depending on where you are.
 
@@ -394,7 +392,7 @@ Inside the plugin definition add a `configuration` section :
 * Or first build the app with `mvn clean package` and after that run the JAR `java -jar target/sellingpoint-swarm.jar`
 
 ==== Updating the front-end app to consume the SellingPoint Service
-In the `bookstore` app go to `src/main/webapp/scripts/services/SellingPoints.js` and replace the content with :
+In the `bookstore` app go to `src/main/webapp/scripts/services/SellingPointFactory.js` and replace the content with :
 
 [source, javascript]
 -----
