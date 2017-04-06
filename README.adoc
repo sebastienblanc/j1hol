@@ -580,7 +580,7 @@ image::images/beareronly.png[]
 
 * In the installation tab , select `Keycloak OIDC JSON` format and download the file
 
-* Copy it to `bookstore/src/main/webapp/WEB-INF`
+* Copy it to `bookservice/src/main/webapp/WEB-INF`
 
 ==== Create `bookstore` client
 
